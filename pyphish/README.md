@@ -1,0 +1,3 @@
+# PyPhish
+
+Package for all things Pythonic for Phish setlist prediction...
