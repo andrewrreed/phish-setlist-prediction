@@ -104,3 +104,35 @@ class PhishNetAPI:
             'response').get('data')).transpose()
 
         return venues
+
+    def get_all_shows(self):
+        """
+        Utilize the Phish.net /shows/query/ endpoint to iteratively pull all shows by year and return as a dataframe
+        """
+
+        # define api endpoint
+        endpoint = '/shows/query/'
+        self.endpoint_ = self._append_endpoint(self._base_url, endpoint)
+
+        # construct payload
+        payload = self._add_api_key_to_query_params()
+        payload['year'] = 2018
+        payload['order'] = 'DESC'
+
+        # request data
+        response = requests.request("GET", self.endpoint_, params=payload)
+
+        # save attributes
+        self.url_ = self._mask_api_key_from_url(response, payload)
+        self.query_string_ = self._mask_api_key_from_query_string(
+            response, payload, self.endpoint_)
+
+        # check response
+        self._is_ok_response(response)
+        self._response_has_error(response)
+
+        # format data
+        shows = pd.DataFrame(response.json().get(
+            'response').get('data'))
+
+        return shows
