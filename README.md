@@ -24,14 +24,13 @@ We'll need to store our API credentials so they're not publicly accessible, but 
 touch .env
 ```
 
-Now we must save our keys as environment variables by adding the following in the `.env` file: 
+Now we must save our keys as environment variables by adding the following in the `.env` file:
 ```bash
-export PHISH_API_KEY="YourSecretKey"
+echo "export PHISH_API_KEY="YourSecretKey"" >> .env
 ```
-and `source` the file so your changes take effect: 
+and `source` the file so your changes take effect:
 ```bash
 source .env
 ```
 
 *Note: At the moment, you'll have to run `source .env` everytime you want to work on this but we should add it to our activate script for the conda env in the future so this is done as we activate the conda environment.*
-
