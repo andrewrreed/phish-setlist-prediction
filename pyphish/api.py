@@ -151,3 +151,35 @@ class PhishNetAPI:
             all_shows = pd.concat([all_shows, this_year_shows], ignore_index=True)
 
         return all_shows
+
+
+    def get_setlist(self, showid):
+        """
+        Given a showid, utilize the Phish.net /setlists/get/ endpoint to pull all show information and format into dataframe
+        """
+
+        # define api endpoint
+        endpoint = '/setlists/get'
+        self.endpoint_ = self._append_endpoint(self._base_url, endpoint)
+
+        # construct payload
+        payload = self._add_api_key_to_query_params()
+        payload['showid'] = showid
+
+        # request data
+        response = requests.request("GET", self.endpoint_, params=payload)
+
+        # save attributes
+        self.url_ = self._mask_api_key_from_url(response, payload)
+        self.query_string_ = self._mask_api_key_from_query_string(
+            response, payload, self.endpoint_)
+
+        # check response
+        self._is_ok_response(response)
+        self._response_has_error(response)
+
+        # format data
+        setlist = pd.DataFrame(response.json().get(
+            'response').get('data'))
+
+        return setlist
