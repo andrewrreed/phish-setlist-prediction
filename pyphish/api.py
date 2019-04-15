@@ -107,9 +107,9 @@ class PhishNetAPI:
 
         return venues
 
-    def get_all_shows(self):
+    def get_shows_by_year(self, year):
         """
-        Utilize the Phish.net /shows/query/ endpoint to iteratively pull all shows by year and return as a dataframe
+        Given a year, utilize the Phish.net /shows/query/ endpoint to pull all shows by year and return as a dataframe
         """
 
         # define api endpoint
@@ -119,36 +119,51 @@ class PhishNetAPI:
         # initialize dataframe to hold all shows
         all_shows = pd.DataFrame()
 
+        # construct payload
+        payload = self._add_api_key_to_query_params()
+        payload['year'] = year
+        payload['order'] = 'ASC'
+
+        # request data
+        response = requests.request("GET", self.endpoint_, params=payload)
+
+        # save attributes
+        self.url_ = self._mask_api_key_from_url(response, payload)
+        self.query_string_ = self._mask_api_key_from_query_string(
+            response, payload, self.endpoint_)
+
+        # check response
+        self._is_ok_response(response)
+        self._response_has_error(response)
+
+        # if that year has 300 shows, warn us because we may be missing data because of API cutoff
+        if response.json().get('response').get('count') >= 300:
+            warnings.warn(f'The year {year} has 300 or more shows, this API query is missing data.')
+
+        # format data
+        year_shows = pd.DataFrame(response.json().get(
+            'response').get('data'))
+
+        return year_shows
+
+
+
+    def get_all_shows(self):
+        """
+        Utilize the Phish.net /shows/query/ endpoint to iteratively pull all shows by year and return as a dataframe
+        """
+
+        # initialize dataframe to hold all shows
+        all_shows = pd.DataFrame()
+
         # query all shows by year
         for year in range(1983, datetime.datetime.now().year+1):
 
-            # construct payload
-            payload = self._add_api_key_to_query_params()
-            payload['year'] = year
-            payload['order'] = 'ASC'
-
-            # request data
-            response = requests.request("GET", self.endpoint_, params=payload)
-
-            # save attributes
-            self.url_ = self._mask_api_key_from_url(response, payload)
-            self.query_string_ = self._mask_api_key_from_query_string(
-                response, payload, self.endpoint_)
-
-            # check response
-            self._is_ok_response(response)
-            self._response_has_error(response)
-
-            # if that year has 300 shows, warn us because we may be missing data because of API cutoff
-            if response.json().get('response').get('count') >= 300:
-                warnings.warn(f'The year {year} has 300 or more shows, this API query is missing data.')
-
-            # format data
-            this_year_shows = pd.DataFrame(response.json().get(
-                'response').get('data'))
+            # use get_shows_by_year() to query shows
+            year_shows = self.get_shows_by_year(year)
 
             # append this years shows to master dataframe
-            all_shows = pd.concat([all_shows, this_year_shows], ignore_index=True)
+            all_shows = pd.concat([all_shows, year_shows], ignore_index=True)
 
         return all_shows
 
