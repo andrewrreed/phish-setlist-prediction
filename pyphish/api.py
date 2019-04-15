@@ -8,13 +8,12 @@ from .exceptions import ApiKeyError, ResponseError
 
 class PhishNetAPI:
     """
-    Too lazy rn
+    An API wrapper for conveniently working with the Phish.net API
     """
 
     def __init__(self):
-        """
-        Too lazy rn
-        """
+        """Initialize Phish.net API info and ensure API key variable set"""
+
         self._api_key = os.environ.get('PHISH_API_KEY')
         self._base_url = 'https://api.phish.net/v3'
         self._request_limit = 120
@@ -27,18 +26,16 @@ class PhishNetAPI:
     # ------------- Response Error Handling Utilities -------------
 
     def _is_ok_response(self, response):
-        """
-        Too lazy rn
-        """
+        """Check status code of API response"""
+
         if response.status_code == requests.codes.ok:
             pass
         else:
             response.raise_for_status()
 
     def _response_has_error(self, response):
-        """
-        Too lazy rn
-        """
+        """Raise and format API response error"""
+
         json_response = response.json()
         if json_response.get('error_code') != 0:
             raise ResponseError(f"error code {json_response.get('error_code')}"
@@ -47,27 +44,21 @@ class PhishNetAPI:
     # ------------- Query Parameter Utilities -------------
 
     def _add_api_key_to_query_params(self):
-        """
-        Too lazy rn
-        doc: http://docs.python-requests.org/en/master/user/quickstart/
-        """
+        """Initialize the API payload dictionary with API key"""
+
         payload = {}
         payload['apikey'] = self._api_key
         return payload
 
     def _mask_api_key_from_url(self, response, payload):
-        """
-        Too lazy rn
-        """
+        """Anonomyze API key in response URL"""
 
         url = response.url.replace(payload['apikey'], '<<apikey>>')
 
         return url
 
     def _mask_api_key_from_query_string(self, response, payload, endpoint):
-        """
-        Too lazy rn
-        """
+        """Anonomyze API key in response query string"""
 
         masked_url = response.url.replace(payload['apikey'], '<<apikey>>')
         query_string = masked_url.replace(endpoint, '')
@@ -76,9 +67,7 @@ class PhishNetAPI:
     # ------------- URL Utilities -------------
 
     def _append_endpoint(self, url, endpoint):
-        """
-        Too lazy rn
-        """
+        """Append an endpoint to a url"""
 
         return url + endpoint
 
@@ -86,7 +75,12 @@ class PhishNetAPI:
 
     def get_all_venues(self):
         """
-        Too lazy rn
+        Get all venues.
+
+        Utilize the Phish.net /venues/all/ endpoint to pull all venue information.
+
+        Returns:
+            venues (dataframe) - a dataframe with all records of venue information from Phish.net
         """
 
         endpoint = '/venues/all'
@@ -109,7 +103,16 @@ class PhishNetAPI:
 
     def get_shows_by_year(self, year):
         """
-        Given a year, utilize the Phish.net /shows/query/ endpoint to pull all shows by year and return as a dataframe
+        Get show by year.
+
+        Given a year, utilize the Phish.net /shows/query/ endpoint to pull all shows by year and return as a dataframe.
+
+        Args:
+            year (int) - the year by which you want to query all_shows
+
+        Returns:
+            year_shows (dataframe) - a dataframe with records of show information for the input year
+
         """
 
         # define api endpoint
@@ -150,7 +153,13 @@ class PhishNetAPI:
 
     def get_all_shows(self):
         """
+        Get all shows.
+
         Utilize the Phish.net /shows/query/ endpoint to iteratively pull all shows by year and return as a dataframe
+
+        Returns:
+            all_shows (dataframe) - a dataframe with all records of show information from Phish.net
+
         """
 
         # initialize dataframe to hold all shows
@@ -170,7 +179,16 @@ class PhishNetAPI:
 
     def get_setlist(self, showid):
         """
-        Given a showid, utilize the Phish.net /setlists/get/ endpoint to pull all show information and format into dataframe
+        Get a setlist.
+
+        Given a showid, utilize the Phish.net /setlists/get/ endpoint to pull all show information and format into dataframe.
+
+        Args:
+            showid (int) - Phish.net showid
+
+        Returns:
+            setlist (dataframe) - a one record dataframe with all setlist info
+
         """
 
         # define api endpoint
