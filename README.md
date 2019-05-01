@@ -5,7 +5,7 @@ A project to model the song choice of the band Phish during live shows on tour
 
 To replicate the development environment, run the following command in your terminal:
 ```bash
-conda create --name phish --file requirements.txt
+conda create --name phish --file requirements.txt --yes
 ```
 
 ### Create Python kernel
