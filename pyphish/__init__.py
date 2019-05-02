@@ -7,3 +7,4 @@ __status__ = "dev"
 
 from . import exceptions
 from . import api
+from . import util
