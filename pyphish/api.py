@@ -4,6 +4,7 @@ import datetime
 import warnings
 import pandas as pd
 from .exceptions import ApiKeyError, ResponseError
+from .util import parse_setlist_field
 
 
 class PhishNetAPI:
@@ -216,3 +217,44 @@ class PhishNetAPI:
             'response').get('data'))
 
         return setlist
+
+    def get_all_setlists(self, all_shows):
+        """
+        Get a all setlist data.
+
+        Given an all_shows dataframe (the response from the get_all_shows() method), utilize the get_setlist() method to pull all setlist information and format into dataframe.
+
+        NOTE: If a showid doesnt have a setlist populated, the record is skipped. Therefore, the output dataframe will NOT be identical to the input dataframe
+
+        Args:
+            all_shows (dataframe) - the response from the get_all_shows() method
+
+        Returns:
+            all_setlists (dataframe) - a dataframe with a setlist record for each showid in the input dataframe
+
+        """
+
+        all_setlists = pd.DataFrame()
+        null_setlists = []
+
+        for row in all_shows.iterrows():
+
+            # request setlist data
+            setlist = self.get_setlist(row[1].showid)
+
+            if setlist.empty == True:
+                # collect all showids that do not have a setlist populated on Phish.net
+                null_setlists.append(row[1].showid)
+            else:
+                #parse the setlistdata field to a clean string and append
+                setlist['setlistdata_clean'] = setlist['setlistdata'].apply(lambda x: parse_setlist_field(x))
+                # append to storage dataframe
+                all_setlists = all_setlists.append(setlist)
+
+        if len(null_setlists) > 0:
+            # alert the user of null setlists
+            print(f'There are {len(null_setlists)} shows that do NOT have a setlist populated on Phish.net. These showids are save in the null_setlists attribute. ')
+            # save shows with null setlists
+            self.null_setlists = null_setlists
+            
+        return all_setlists
