@@ -12,28 +12,39 @@ conda create --name phish --file requirements.txt --yes
 
 Next, we need to add a new iPython kernel to jupyter based off of our conda environment if we want that environment to match our scripts. We can do this as follows:
 ```bash
-source activate phish
+conda activate phish
 conda install nb_conda --yes
 python -m ipykernel install --user --name phish --display-name "phish"
 ```
 
-### Create .env file for API credentials
+### Storing environment variables
 
-We'll need to store our API credentials so they're not publicly accessible, but we can both reference them in our code in the same way. To do this, we must create a `.env` file for our project and make sure to add to our `.gitignore`:
+We need to store our API/AWS access credentials so they're not publicly accessible, but also in a way that ensures we can access them in our Conda environment. The following steps will set up a process for automatically setting/unsetting environment variables when our environment is activated: 
+
+1. Activate the Conda environment by running `conda activate phish`. 
+2. Locate the directory for the conda environment by running `echo $CONDA_PREFIX`.
+3. Enter that directory and create these subdirectories and files:
 ```bash
-touch .env
+cd $CONDA_PREFIX
+mkdir -p ./etc/conda/activate.d
+mkdir -p ./etc/conda/deactivate.d
+touch ./etc/conda/activate.d/env_vars.sh
+touch ./etc/conda/deactivate.d/env_vars.sh
+```
+4. Edit `./etc/conda/activate.d/env_vars.sh` as follows:
+```bash
+#!/bin/sh
+export PHISH_API_KEY='your-secret-key'
+```
+5. Edit `./etc/conda/deactivate.d/env_vars.sh` as follows:
+```bash
+#!/bin/sh
+unset PHISH_API_KEY
 ```
 
-Now we must save our keys as environment variables by adding the following in the `.env` file:
-```bash
-echo "export PHISH_API_KEY="YourSecretKey"" >> .env
-```
-and `source` the file so your changes take effect:
-```bash
-source .env
-```
+Now when you run `conda activate phish`, the environment variables you specify in `./etc/conda/activate.d/env_vars.sh` such as `PHISH_API_KEY` are set to the values you wrote into the file. When you run `conda deactivate`, those variables are erased.
 
-*Note: At the moment, you'll have to run `source .env` everytime you want to work on this but we should add it to our activate script for the conda env in the future so this is done as we activate the conda environment.*
+For more info, reference the [Conda documentation](https://docs.conda.io/projects/conda/en/latest/user-guide/tasks/manage-environments.html#saving-environment-variables) for saving environment variables. 
 
 ### Configuring Boto for AWS management
 

@@ -1,3 +1,3 @@
 # PyPhish
 
-Package for all things Pythonic for Phish setlist prediction...
+A python wrapper for the Phish.net API
